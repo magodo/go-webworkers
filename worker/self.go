@@ -47,7 +47,7 @@ func (s *GlobalSelf) PostMessage(message safejs.Value, transfers []safejs.Value)
 
 // Listen sends message events on a channel for events fired by worker.postMessage() calls inside the main thread's global scope.
 // Stops the listener and closes the channel when ctx is canceled.
-func (s *GlobalSelf) Listen(ctx context.Context) (<-chan types.MessageEvent, error) {
+func (s *GlobalSelf) Listen(ctx context.Context) (<-chan types.MessageEventMessage, error) {
 	return s.port.Listen(ctx)
 }
 
