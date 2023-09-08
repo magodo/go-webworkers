@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"sync"
 
 	"github.com/hack-pad/safejs"
 )
@@ -19,9 +20,15 @@ func listen(ctx context.Context, listener safejs.Value, events ...string) (_ <-c
 	eventsCh := make(chan MessageEvent)
 
 	var handlers []safejs.Func
+	var wg sync.WaitGroup
 	for range events {
-		handler, err := nonBlocking(func(args []safejs.Value) {
-			eventsCh <- parseMessageEvent(args[0])
+		handler, err := nonBlocking(&wg, func(args []safejs.Value) {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				eventsCh <- parseMessageEvent(args[0])
+			}
 		})
 		if err != nil {
 			return nil, err
@@ -38,6 +45,7 @@ func listen(ctx context.Context, listener safejs.Value, events ...string) (_ <-c
 				handler.Release()
 			}
 		}
+		wg.Wait()
 		close(eventsCh)
 	}()
 
@@ -52,9 +60,13 @@ func listen(ctx context.Context, listener safejs.Value, events ...string) (_ <-c
 	return eventsCh, nil
 }
 
-func nonBlocking(fn func(args []safejs.Value)) (safejs.Func, error) {
+func nonBlocking(wg *sync.WaitGroup, fn func(args []safejs.Value)) (safejs.Func, error) {
 	return safejs.FuncOf(func(_ safejs.Value, args []safejs.Value) any {
-		go fn(args)
+		wg.Add(1)
+		go func() {
+			fn(args)
+			wg.Done()
+		}()
 		return nil
 	})
 }
