@@ -1,4 +1,4 @@
-module github.com/hack-pad/go-webworkers
+module github.com/magodo/go-webworkers
 
 go 1.19
 

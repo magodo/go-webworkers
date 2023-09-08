@@ -4,7 +4,7 @@ package worker
 
 import (
 	"context"
-	"github.com/hack-pad/go-webworkers/internal"
+	"github.com/magodo/go-webworkers/internal"
 
 	"github.com/hack-pad/safejs"
 )
